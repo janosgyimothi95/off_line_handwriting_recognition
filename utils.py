@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
+import matplotlib.gridspec as gridspec
+
 import os
 import random
 from operator import itemgetter
@@ -544,3 +546,14 @@ def create_horizontal_dashed_line(image, index = 50, dash_size = 150 ,color=(255
     print(point_pairs)
     for p in point_pairs:
         cv2.line(image, (p[0], index), (p[1], index), color, 2, cv2.LINE_AA)
+
+
+def remove_unwanted_elements_from_list(list, to_remove_indices):
+
+    to_remove_indices.sort(reverse=True)
+
+    if to_remove_indices:
+        for i in to_remove_indices:
+            del list[i]
+
+    return list

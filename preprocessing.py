@@ -392,7 +392,7 @@ def detect_underlines(source_image, show_result=True):
     :return:
     '''
 
-    GAP_AVG_INTENSITY_TH = 20
+    GAP_AVG_INTENSITY_TH = 10
     GAP_SIZE = 20
 
     final_lines = []
@@ -403,26 +403,40 @@ def detect_underlines(source_image, show_result=True):
     to_draw[source_image > 0] = (255, 255, 255)
 
 
+
     if detected_lines is not None:
 
         for i in range(0, len(detected_lines)):
 
             l = detected_lines[i][0]
 
+            x1, y1, x2, y2 = l
+            dx = x2 - x1
+            dy = y2 - y1
+            angle = np.arctan(dy / dx) * 180 / np.pi
+
             cv2.line(to_draw, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 5, cv2.LINE_AA)
             cv2.circle(to_draw, (l[0], l[1]), 7, (0, 255, 0), -1)
             cv2.circle(to_draw, (l[2], l[3]), 7, (0, 255, 0), -1)
             #Verifying detected lines
-            roi = source_image[l[1] - GAP_SIZE:l[1] + GAP_SIZE, l[0]:l[2]]
+            roi = source_image[int((l[1]+l[3])/2) - GAP_SIZE:int((l[1]+l[3])/2) + GAP_SIZE, l[0]:l[2]]
+
+            if abs(angle) > 0.2:
+                roi = rotate_bound(roi, -angle)
+
+
             mean_int_vect = np.average(roi, axis=1)
-            if (mean_int_vect[:GAP_SIZE] < GAP_AVG_INTENSITY_TH).any() and (
-                    mean_int_vect[GAP_SIZE:] < GAP_AVG_INTENSITY_TH).any():
+
+            midpoint = int(roi.shape[0]/2)
+            if (mean_int_vect[midpoint-15:midpoint] < GAP_AVG_INTENSITY_TH).any() and (
+                    mean_int_vect[midpoint:midpoint+15] < GAP_AVG_INTENSITY_TH).any():
                 #Collecting verified lines
                 cv2.line(to_draw, (l[0], l[1]), (l[2], l[3]), (255, 0, 0), 5, cv2.LINE_AA)
                 final_lines.append([l])
 
     if show_result:
         show_image(to_draw, 'Detected lines')
+
 
     if len(final_lines) > 0:
         return final_lines
@@ -446,8 +460,7 @@ def mask_detected_underlines(source_image, detected_lines, show_result=True):
             l = detected_lines[i][0]
             cv2.line(source_image, (l[0], l[1]), (l[2], l[3]), 0, 25, cv2.LINE_AA)
 
-
     if show_result:
-        show_image(source_image, 'Removed underlines')
+        show_image(source_image, 'Detected lines')
 
     return source_image

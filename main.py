@@ -25,7 +25,13 @@ def main():
                            '105', '106']
 
     UNDERLINE_CRITICAL = ['024', '056', '063', '065', '026', '028', '029', '099']
-    UNDERLINE_TEST = ['085']
+    UNDERLINE_TEST = ['023']
+    # BAD_LINE_SEGMENTTION = ['004', '012', '016', '017', '029', '056', '068', '077', '106']
+    CRITICAL_LINE_SEGMENTTION = ['004','012', '068']
+
+    BAD_LINE_SEGMENTTION = ['015','024', '025']
+
+    picture_list_2 = sorted(os.listdir('../../Images/angol/'))
 
 
 
@@ -35,13 +41,16 @@ def main():
 
 
 
-    for picture_label in UNDERLINE_CRITICAL:
+    for picture_label in UNDERLINE_TEST:
         rusted_picture = cv2.imread('../../Images/magyar/Image00' + picture_label + '.tif')
         # rusted_picture = cv2.imread('../../Images/magyar/' + picture_label)
 
 
+
+
         print('\nCurrent picture: ', picture_label.split('.')[0][-3:])
 
+        # show_image(rusted_picture, 'Original')
 
         #RUST REMOVAL
         rust_mask = rust_detection(rusted_picture, False)
@@ -71,7 +80,22 @@ def main():
 
         #UNDERLINE ELIMINATION
         underlines = detect_underlines(rotated, False)
-        _ = mask_detected_underlines(rotated, underlines, True)
+        preprocessed = mask_detected_underlines(rotated, underlines, False)
+
+
+
+        line_list, picture_segments, vectors = calculate_separating_line_list(preprocessed, 9, True)
+
+        NUM_OF_ROWS, NUM_OF_COLS = preprocessed.shape
+
+        segmented_lines = create_segmented_line_list(preprocessed, line_list, show_result=False)
+
+        determine_word_segments(preprocessed, segmented_lines)
+
+
+
+
+
 
 
 
