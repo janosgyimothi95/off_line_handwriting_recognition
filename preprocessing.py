@@ -1,3 +1,7 @@
+""" PREPROCESSING MODULE
+
+"""
+
 from utils import *
 
 """
@@ -11,9 +15,8 @@ CONTOUR_SIGNIFICANCY_TH = 150
 
 
 """
-Rust elimination
+I. Rust elimination
 """
-
 def rust_detection(source_image, show_result=True):
     '''
 
@@ -40,6 +43,7 @@ def rust_detection(source_image, show_result=True):
         cv2.waitKey(0)
 
     return rust_mask
+
 
 
 def smooth_rust_mask(rust_mask, show_result=True):
@@ -77,18 +81,15 @@ def eliminate_rust_points(source_image, rust_mask, show_result=False):
     result[np.nonzero(rust_mask)] = color
 
     if show_result:
-        cv2.namedWindow('Eliminated rust', cv2.WINDOW_NORMAL)
-        cv2.imshow('Eliminated rust', result)
-        cv2.waitKey(0)
+        show_image(result, 'Eliminated rust')
 
     return result
 
 
 
 """
-Binarization
+II. Binarization
 """
-
 def convert_image_to_grayscale(source_image, show_result=True):
     '''
 
@@ -106,6 +107,7 @@ def convert_image_to_grayscale(source_image, show_result=True):
     return grayscale_image
 
 
+
 def determine_binary_threshold(source_image, show_result=False):
     '''
 
@@ -117,7 +119,6 @@ def determine_binary_threshold(source_image, show_result=False):
     blurred = cv2.GaussianBlur(source_image, (GAUSSIAN_KERNEL_SIZE,GAUSSIAN_KERNEL_SIZE), 0)
     threshold, otsu = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    # threshold2, otsu = cv2.threshold(source_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     if show_result:
         plt.clf()
@@ -133,6 +134,7 @@ def determine_binary_threshold(source_image, show_result=False):
     return threshold
 
 
+
 def binarize_grayscale_image(source_image, threshold, show_result=True):
     '''
 
@@ -145,20 +147,16 @@ def binarize_grayscale_image(source_image, threshold, show_result=True):
     _, binary_image = cv2.threshold(source_image, threshold, 255, cv2.THRESH_BINARY_INV)
 
     if show_result:
-        cv2.namedWindow('Binary image', cv2.WINDOW_NORMAL)
-        cv2.imshow('Binary image', binary_image)
-        cv2.waitKey(0)
+        show_image(binary_image, 'Binary image')
 
     return binary_image
 
 
 
 
-
 """
-Document identifier elimination 
+III. ROI selection
 """
-
 def remove_document_identifiers(source_image, show_result=True):
     '''
 
@@ -188,21 +186,11 @@ def remove_document_identifiers(source_image, show_result=True):
     bool_maxima_vector = np.r_[True, smoothed_vector[1:] > smoothed_vector[:-1]] & np.r_[
         smoothed_vector[:-1] > smoothed_vector[1:], True]
 
-    local_maxima_indices = [i for i, bool_value in enumerate(bool_maxima_vector) if (bool_value and smoothed_vector[i]>MAXIMA_THRESHOLD)]
+    local_maxima_indices = [i for i, bool_value in enumerate(bool_maxima_vector) if
+                            (bool_value and smoothed_vector[i] > MAXIMA_THRESHOLD and i > 100)]
 
-    first_gap_position = int((local_maxima_indices[0] + local_maxima_indices[1] + local_maxima_indices[2] ) / 3 )
+    first_gap_position = int((local_maxima_indices[0] + local_maxima_indices[1]) / 2)
 
-    # if show_result:
-        # x = [i for i in range(source_image.shape[0])]
-        # plt.suptitle('Row-wise average analysis of binary handwritten image')
-        # plt.xlim(0, len(mean_row_intensity_vector))
-        # plt.plot(x, mean_row_intensity_vector, color='g', alpha=0.75, label='Original signal')
-        # plt.plot(x, smoothed_vector, color='b', label='Smoothed signal (Hamming, k_size=101)')
-        # plt.axvline(x=first_gap_position, color='r', linestyle='dashed', linewidth=1, label=('Average line between fisrt and second row'))
-        # plt.xlabel('Serial number of row')
-        # plt.ylabel('Average intensity value')
-        # plt.legend(loc='upper left')
-        # plt.show()
 
     potentian_boxes = sort_bounding_boxes_by_position(boundRect, first_gap_position)
     filtered_boxes = []
@@ -211,6 +199,7 @@ def remove_document_identifiers(source_image, show_result=True):
             pass
         else:
             filtered_boxes.append(box)
+
 
     # Horizontal sorting of bounding boxes
     sorted_boxes = sorted(filtered_boxes, key=itemgetter(0))
@@ -221,26 +210,30 @@ def remove_document_identifiers(source_image, show_result=True):
     else:
         selected_boxes = [None]
 
+
     drawing = np.zeros(shape=source_image.shape + (3,), dtype=np.uint8)
+
+    drawing[source_image > 0] = (255, 255, 255)
 
     mask = np.zeros(shape=source_image.shape, dtype=np.uint8)
 
     for box in sorted_boxes:
         if box is not None:
             cv2.rectangle(drawing, (int(box[0]), int(box[1])),
-                      (int(box[0] + box[2]), int(box[1] + box[3])), (0 , 0, 255), 3)
+                      (int(box[0] + box[2]), int(box[1] + box[3])), (0, 0, 255), 3)
 
     for box in selected_boxes:
         if box is not None:
             cv2.rectangle(drawing, (int(box[0]), int(box[1])),
                       (int(box[0] + box[2]), int(box[1] + box[3])), (0, 255, 0), 3)
+
             cv2.rectangle(mask, (int(box[0]), int(box[1])),
                       (int(box[0] + box[2]), int(box[1] + box[3])), 255, cv2.FILLED)
 
 
     if show_result:
         show_image(drawing, 'Selected contours')
-        show_image(cv2.bitwise_and(source_image, mask), 'Masked image')
+        # show_image(cv2.bitwise_and(source_image, mask), 'Masked image')
 
     # Generate Mask
     mask = cv2.bitwise_not(mask)
@@ -248,10 +241,6 @@ def remove_document_identifiers(source_image, show_result=True):
     return mask, selected_boxes
 
 
-
-"""
-ROI cropping
-"""
 
 def select_roi(source_image, show_result=True):
     '''
@@ -299,7 +288,7 @@ def select_roi(source_image, show_result=True):
     bounding_rectangle = cv2.boundingRect(cv2.approxPolyDP(joined_contour, 3, True))
 
     result = np.zeros(shape=source_image.shape + (3,), dtype=np.uint8)
-    result[opened_image == 0] = (255,255,255)
+    result[opened_image > 0] = (255,255,255)
     if show_result:
         for i, box in enumerate(boundRect):
             if i in to_remove:
@@ -310,27 +299,42 @@ def select_roi(source_image, show_result=True):
                                                     (int(box[0] + box[2]), int(box[1] + box[3])), (0, 255, 0), 3)
         cv2.rectangle(result, (int(bounding_rectangle[0]), int(bounding_rectangle[1])),
                       (int(bounding_rectangle[0] + bounding_rectangle[2]), int(bounding_rectangle[1] + bounding_rectangle[3])), (255, 0, 0), 3)
-        show_image(result, 'ROI')
 
+        show_image(result, 'Selected ROI')
 
     return bounding_rectangle
 
+
+
 def crop_roi(source_image, roi, show_result=True):
+    '''
+
+    :param source_image:
+    :param roi:
+    :param show_result:
+    :return:
+    '''
 
     roi = crop_rectangle_from_image(source_image, roi)
 
     if show_result:
-        show_image(roi, 'ROI')
+        show_image(roi, 'Cropped ROI')
 
     return roi
 
 
 
 """
-Rotation
+IV. Rotation
 """
-
 def rotate_image(source_image, show_result=True):
+    '''
+
+    :param source_image:
+    :param show_result:
+    :return:
+    '''
+
 
     NUM_OF_ROWS, NUM_OF_COLS = source_image.shape
     MORPH_OPEN_KERNEL_SIZE = (51, 3)
@@ -356,16 +360,15 @@ def rotate_image(source_image, show_result=True):
             angle = np.arctan(dy / dx) * 180 / np.pi
             angles.append(angle)
 
-        #TODO filter outliers
 
         ang_mean = np.mean(angles)
         ang_med = np.median(angles)
         ang_std = np.std(angles)
 
-        print('Mean angle: {:4.2f}\nMedian angle: {:4.2f}\nDeviation: {:4.2f}'.format(ang_mean, ang_med, ang_std))
+        # print('Mean angle: {:4.2f}\nMedian angle: {:4.2f}\nDeviation: {:4.2f}'.format(ang_mean, ang_med, ang_std))
+
 
         if abs(ang_med) > 0.2:
-
             rotation_angle = ang_med
             rotated = rotate_bound(source_image, -rotation_angle)
 
@@ -380,10 +383,10 @@ def rotate_image(source_image, show_result=True):
     return source_image
 
 
-"""
-Underline removal
-"""
 
+"""
+V. Underline removal
+"""
 def detect_underlines(source_image, show_result=True):
     '''
 
@@ -413,7 +416,10 @@ def detect_underlines(source_image, show_result=True):
             x1, y1, x2, y2 = l
             dx = x2 - x1
             dy = y2 - y1
-            angle = np.arctan(dy / dx) * 180 / np.pi
+            if dx == 0:
+                angle = 0
+            else:
+                angle = np.arctan(dy / dx) * 180 / np.pi
 
             cv2.line(to_draw, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 5, cv2.LINE_AA)
             cv2.circle(to_draw, (l[0], l[1]), 7, (0, 255, 0), -1)
@@ -444,6 +450,7 @@ def detect_underlines(source_image, show_result=True):
     return None
 
 
+
 def mask_detected_underlines(source_image, detected_lines, show_result=True):
     '''
 
@@ -464,3 +471,45 @@ def mask_detected_underlines(source_image, detected_lines, show_result=True):
         show_image(source_image, 'Detected lines')
 
     return source_image
+
+
+
+"""
+Wrapper
+"""
+def run_preprocessing(source_image, show_subresults=False):
+    '''
+
+    :param source_image:
+    :param show_subresults:
+    :return:
+    '''
+
+    # RUST REMOVAL
+    rust_mask = rust_detection(source_image, False)
+    smooth_mask = smooth_rust_mask(rust_mask, False)
+    rustless = eliminate_rust_points(source_image, smooth_mask, show_subresults)
+
+    # BINARIZATION
+    gray_rustless = convert_image_to_grayscale(rustless, False)
+    th = determine_binary_threshold(gray_rustless, False)
+    binary_rustless = binarize_grayscale_image(gray_rustless, th, show_subresults)
+
+    # DOCUMENT IDENTIFIER REMOVAL
+    mask, boxes = remove_document_identifiers(binary_rustless, False)
+    masked_image = cv2.bitwise_and(mask, binary_rustless)
+
+    # ROI SELECTION AND CROPPING
+    roi = select_roi(cv2.bitwise_and(mask, binary_rustless), show_subresults)
+    cropped = crop_roi(masked_image, roi, show_subresults)
+
+    # ROI ROTATION
+    rotated = rotate_image(cropped, show_subresults)
+
+    # UNDERLINE ELIMINATION
+    underlines = detect_underlines(rotated, False)
+    preprocessed = mask_detected_underlines(rotated, underlines, show_subresults)
+
+    show_image(preprocessed, 'Preprocessed image')
+
+    return preprocessed

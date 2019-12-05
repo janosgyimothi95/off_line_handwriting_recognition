@@ -1,3 +1,7 @@
+""" UTILITIES MODULE
+
+"""
+
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
@@ -409,9 +413,11 @@ def plot_image_comparison(image_list, colormaps):
 
 def show_image(source_image, window_name='Examined image'):
 
+    cv2.destroyAllWindows()
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.imshow(window_name, source_image)
     cv2.waitKey(0)
+
 
 
 
@@ -557,3 +563,11 @@ def remove_unwanted_elements_from_list(list, to_remove_indices):
             del list[i]
 
     return list
+
+
+def convert_int_to_label_string(int_id):
+
+    string_id = str(int_id)
+    string_id = (3-len(string_id))*'0' + string_id
+
+    return string_id

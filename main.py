@@ -1,106 +1,82 @@
-from utils import *
+""" MAIN MODULE
+
+"""
+
+
 from segmentation import *
 from preprocessing import *
-
-def main():
-
-    # picture_list = sorted(os.listdir('../../Pictures/Scanjob_10348/'))
-    # print(picture_list)
-    # for picture in picture_list:
-    #
-    #     # Reading img as grayscale
-    #     test_img = cv2.imread('../../Pictures/Scanjob_10343/' + picture, cv2.IMREAD_GRAYSCALE)
-    #     print('Current picure: {}'.format(picture))
-    #
-    #     word_dict = word_segmentation(test_img, show_results=True)
+import argparse
+from argparse import RawTextHelpFormatter
 
 
-    CRITICAL_PICTURES = ['071', '113', '114']
-    CRITICAL_BAD_ROIS = ['014', '035', '072', '027', '108']
-    BAD_ROIS = ['016','017','018','035','042', '047', '051', '072', '083', '111']
-    TEST = ['082']
-    GOOD_ROTATION = ['012']
-    UNDERLINE_TESTCASES = ['001', '010', '019', '022', '023', '027', '032', '034', '045', '046', '050', '051', '053',
-                           '054', '056', '061', '062', '063', '064', '066', '081', '082', '085', '091', '092', '095',
-                           '105', '106']
+def main(argument_list):
+    '''
 
-    UNDERLINE_CRITICAL = ['024', '056', '063', '065', '026', '028', '029', '099']
-    UNDERLINE_TEST = ['023']
-    # BAD_LINE_SEGMENTTION = ['004', '012', '016', '017', '029', '056', '068', '077', '106']
-    CRITICAL_LINE_SEGMENTTION = ['004','012', '068']
+    :return:
+    '''
 
-    BAD_LINE_SEGMENTTION = ['015','024', '025']
+    picture_list = argument_list[0]
+    mode = argument_list[1]
+    show_subresults = argument_list[2]
 
-    picture_list_2 = sorted(os.listdir('../../Images/angol/'))
+    if mode == 'segm':
+        IMAGE_PREFIX = '../../Images/preprocessed/Image00'
 
+        for i in picture_list:
+            current_image = cv2.imread(IMAGE_PREFIX + convert_int_to_label_string(i) + '.png', cv2.IMREAD_GRAYSCALE)
+            show_image(current_image, 'Preprocessed image')
 
+            # TODO Image description
 
-    picture_list = sorted(os.listdir('../../Images/magyar/'))
+            run_segmentation(current_image, show_subresults)
 
-    print(picture_list)
+    else:
+        IMAGE_PREFIX = '../../Images/magyar/Image00'
 
+        for i in picture_list:
+            current_image = cv2.imread(IMAGE_PREFIX + convert_int_to_label_string(i) + '.tif')
+            # TODO Image description
 
+            show_image(current_image, 'Original image')
 
-    for picture_label in UNDERLINE_TEST:
-        rusted_picture = cv2.imread('../../Images/magyar/Image00' + picture_label + '.tif')
-        # rusted_picture = cv2.imread('../../Images/magyar/' + picture_label)
+            preprocessed_image = run_preprocessing(current_image, show_subresults)
+
+            if mode == 'comb':
+                run_segmentation(preprocessed_image, show_subresults)
 
 
 
+def parse_argumments():
 
-        print('\nCurrent picture: ', picture_label.split('.')[0][-3:])
-
-        # show_image(rusted_picture, 'Original')
-
-        #RUST REMOVAL
-        rust_mask = rust_detection(rusted_picture, False)
-        smooth_mask = smooth_rust_mask(rust_mask, False)
-        rustless = eliminate_rust_points(rusted_picture, smooth_mask, False)
+    valid_id_list = [int(i.split('.')[0][-3:]) for i in sorted(os.listdir('../../Images/magyar')) if i != 'Thumbs.db']
 
 
-        #BINARIZATION
-        gray_rustless = convert_image_to_grayscale(rustless, False)
-        th = determine_binary_threshold(gray_rustless, False)
-        binary_rustless = binarize_grayscale_image(gray_rustless, th, False)
+    def valid_image_id(id):
+        id = int(id)
+        if id not in valid_id_list:
+            raise argparse.ArgumentTypeError("\nSpecified image id: {} was not found in image list.".format(id))
+        return id
 
 
-        #DOCUMENT IDENTIFIER REMOVAL
-        mask, boxes = remove_document_identifiers(binary_rustless, False)
-        masked_image = cv2.bitwise_and(mask, binary_rustless)
+    parser = argparse.ArgumentParser(description='Offline handwriting recognition system:\nPreprocessing & Segmentation modules', formatter_class = RawTextHelpFormatter)
+
+    parser.add_argument('-i', '--images', nargs='+', default=valid_id_list, metavar="", type=valid_image_id, help='Specify which images to use. \nValid image ids: {}\n\n'.format(valid_id_list))
+
+    parser.add_argument('-m', '--mode',  choices=['prep', 'segm', 'comb'], default='comb', help='Specifies the running mode of the program\n\n')
+
+    parser.add_argument('-d', '--detailed', action='store_true', help='Sets the display to be detailed, meaning the program will show subresults')
 
 
-        #ROI SELECTION AND CROPPING
-        roi = select_roi(cv2.bitwise_and(mask, binary_rustless), False)
-        cropped = crop_roi(masked_image, roi, False)
+    args = parser.parse_args()
 
+    args.images = list(set(args.images))
+    args.images.sort()
 
-        #ROI ROTATION
-        rotated = rotate_image(cropped, False)
+    argument_list = [args.images, args.mode, args.detailed]
 
-
-        #UNDERLINE ELIMINATION
-        underlines = detect_underlines(rotated, False)
-        preprocessed = mask_detected_underlines(rotated, underlines, False)
-
-
-
-        line_list, picture_segments, vectors = calculate_separating_line_list(preprocessed, 9, True)
-
-        NUM_OF_ROWS, NUM_OF_COLS = preprocessed.shape
-
-        segmented_lines = create_segmented_line_list(preprocessed, line_list, show_result=False)
-
-        determine_word_segments(preprocessed, segmented_lines)
-
-
-
-
-
-
-
+    return argument_list
 
 
 
 if __name__ == '__main__':
-
-    main()
+    main(parse_argumments())
