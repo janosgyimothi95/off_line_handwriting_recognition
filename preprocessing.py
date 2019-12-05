@@ -1,5 +1,5 @@
 """ PREPROCESSING MODULE
-
+This module's purpose is to generate a preprocessed image from the "raw" source image.
 """
 
 from utils import *
@@ -18,11 +18,11 @@ CONTOUR_SIGNIFICANCY_TH = 150
 I. Rust elimination
 """
 def rust_detection(source_image, show_result=True):
-    '''
+    ''' Detects rust points.
 
-    :param source_image:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param show_result:     if True shows results
+    :return:                rust points
     '''
 
     result = np.copy(source_image)
@@ -47,11 +47,11 @@ def rust_detection(source_image, show_result=True):
 
 
 def smooth_rust_mask(rust_mask, show_result=True):
-    '''
+    ''' Smooths rust mask.
 
-    :param rust_mask:
-    :param show_result:
-    :return:
+    :param rust_mask:       rust mask
+    :param show_result:     if True shows results
+    :return:                smoothed rust mask
     '''
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
@@ -68,11 +68,11 @@ def smooth_rust_mask(rust_mask, show_result=True):
 
 
 def eliminate_rust_points(source_image, rust_mask, show_result=False):
-    '''
+    ''' Applies rust mask to image.
 
-    :param source_image:
-    :param rust_mask:
-    :return:
+    :param source_image:    source image
+    :param rust_mask:       rust mask
+    :return:                masked image
     '''
 
     result = np.copy(source_image)
@@ -91,10 +91,10 @@ def eliminate_rust_points(source_image, rust_mask, show_result=False):
 II. Binarization
 """
 def convert_image_to_grayscale(source_image, show_result=True):
-    '''
+    ''' Converts image to grayscale.
 
-    :param source_image:
-    :return:
+    :param source_image:    source image
+    :return:                grayscale image
     '''
 
     grayscale_image = cv2.cvtColor(source_image, cv2.COLOR_BGR2GRAY)
@@ -109,11 +109,11 @@ def convert_image_to_grayscale(source_image, show_result=True):
 
 
 def determine_binary_threshold(source_image, show_result=False):
-    '''
+    ''' Calculates binary threshold.
 
-    :param source_image:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param show_result:     if True shows results
+    :return:                plot of th determination
     '''
 
     blurred = cv2.GaussianBlur(source_image, (GAUSSIAN_KERNEL_SIZE,GAUSSIAN_KERNEL_SIZE), 0)
@@ -136,12 +136,12 @@ def determine_binary_threshold(source_image, show_result=False):
 
 
 def binarize_grayscale_image(source_image, threshold, show_result=True):
-    '''
+    ''' Converts grayscale to binary.
 
-    :param source_image:
-    :param threshold:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param threshold:       binary threshold
+    :param show_result:     if True shows results
+    :return:                binary image
     '''
 
     _, binary_image = cv2.threshold(source_image, threshold, 255, cv2.THRESH_BINARY_INV)
@@ -158,11 +158,11 @@ def binarize_grayscale_image(source_image, threshold, show_result=True):
 III. ROI selection
 """
 def remove_document_identifiers(source_image, show_result=True):
-    '''
+    ''' Removes document identifiers.
 
-    :param source_image:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param show_result:     if True shows results
+    :return:                masked document identifiers
     '''
 
     MORPH_CLOSE_KERNEL_SIZE = (151, 15)
@@ -243,11 +243,11 @@ def remove_document_identifiers(source_image, show_result=True):
 
 
 def select_roi(source_image, show_result=True):
-    '''
+    ''' ROI selection.
 
-    :param source_image:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param show_result:     if True shows results
+    :return:                selected ROI
     '''
 
     MORPH_OP_KERNEL_SIZE = (5, 5)
@@ -307,12 +307,12 @@ def select_roi(source_image, show_result=True):
 
 
 def crop_roi(source_image, roi, show_result=True):
-    '''
+    ''' Crops selected ROI from image.
 
-    :param source_image:
-    :param roi:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param roi:             ROI
+    :param show_result:     if True shows results
+    :return:                cropped image
     '''
 
     roi = crop_rectangle_from_image(source_image, roi)
@@ -328,11 +328,11 @@ def crop_roi(source_image, roi, show_result=True):
 IV. Rotation
 """
 def rotate_image(source_image, show_result=True):
-    '''
+    ''' Rotates image.
 
-    :param source_image:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param show_result:     if True shows results
+    :return:                rotated iamge
     '''
 
 
@@ -388,11 +388,11 @@ def rotate_image(source_image, show_result=True):
 V. Underline removal
 """
 def detect_underlines(source_image, show_result=True):
-    '''
+    ''' Detects underlines on image.
 
-    :param source_image:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param show_result:     if True shows results
+    :return:                detected underlines
     '''
 
     GAP_AVG_INTENSITY_TH = 10
@@ -452,12 +452,12 @@ def detect_underlines(source_image, show_result=True):
 
 
 def mask_detected_underlines(source_image, detected_lines, show_result=True):
-    '''
+    ''' Masks detected underlines.
 
-    :param source_image:
-    :param detected_lines:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param detected_lines:  detected underline list
+    :param show_result:     if True shows results
+    :return:                masked underlines image
     '''
 
     if detected_lines is not None:
@@ -478,11 +478,11 @@ def mask_detected_underlines(source_image, detected_lines, show_result=True):
 Wrapper
 """
 def run_preprocessing(source_image, show_subresults=False):
-    '''
+    ''' Runs preprocessing on given image.
 
-    :param source_image:
-    :param show_subresults:
-    :return:
+    :param source_image:        source image
+    :param show_subresults:     if True shows subresults
+    :return:                    preprocessed image
     '''
 
     # RUST REMOVAL

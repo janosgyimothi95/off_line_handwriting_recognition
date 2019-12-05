@@ -1,5 +1,5 @@
 """ MAIN MODULE
-
+This module's purpose is to run the program with the configured inputs.
 """
 
 
@@ -10,9 +10,10 @@ from argparse import RawTextHelpFormatter
 
 
 def main(argument_list):
-    '''
+    '''Main function. Runs the progra with the configurated arguments
 
-    :return:
+    :param argument_list: arguments
+    :return:              -
     '''
 
     picture_list = argument_list[0]
@@ -26,7 +27,8 @@ def main(argument_list):
             current_image = cv2.imread(IMAGE_PREFIX + convert_int_to_label_string(i) + '.png', cv2.IMREAD_GRAYSCALE)
             show_image(current_image, 'Preprocessed image')
 
-            # TODO Image description
+            print_picture_informations(current_image)
+
 
             run_segmentation(current_image, show_subresults)
 
@@ -35,7 +37,8 @@ def main(argument_list):
 
         for i in picture_list:
             current_image = cv2.imread(IMAGE_PREFIX + convert_int_to_label_string(i) + '.tif')
-            # TODO Image description
+
+            print_picture_informations(current_image)
 
             show_image(current_image, 'Original image')
 
@@ -47,11 +50,21 @@ def main(argument_list):
 
 
 def parse_argumments():
+    ''' Parses command line arguments
+
+    :return:    parsed argument list
+    '''
 
     valid_id_list = [int(i.split('.')[0][-3:]) for i in sorted(os.listdir('../../Images/magyar')) if i != 'Thumbs.db']
 
 
     def valid_image_id(id):
+        ''' Special type of input.
+
+        :param id:  image id
+        :return:    Exception | int id
+        '''
+
         id = int(id)
         if id not in valid_id_list:
             raise argparse.ArgumentTypeError("\nSpecified image id: {} was not found in image list.".format(id))
@@ -75,7 +88,6 @@ def parse_argumments():
     argument_list = [args.images, args.mode, args.detailed]
 
     return argument_list
-
 
 
 if __name__ == '__main__':

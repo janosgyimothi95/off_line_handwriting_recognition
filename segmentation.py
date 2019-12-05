@@ -1,5 +1,5 @@
 """ SEGMENTATION MODULE
-
+This module's purpose is to segment the words on the preprocessed image.
 """
 
 from utils import *
@@ -9,12 +9,12 @@ from utils import *
 I. Separating line calculation
 """
 def calculate_separating_line_list(source_image, PARTITION_NUMBER=9, show_result=True):
-    '''
+    ''' Calculates separating lines between each line of image.
 
-    :param source_image:
-    :param PARTITION_NUMBER:
-    :param show_result:
-    :return:
+    :param source_image:        source image
+    :param PARTITION_NUMBER:    number of image partitions
+    :param show_result:         if True shows results
+    :return:                    separating line list
     '''
 
     NUM_OF_ROWS, NUM_OF_COLS = source_image.shape
@@ -197,10 +197,10 @@ def calculate_separating_line_list(source_image, PARTITION_NUMBER=9, show_result
 II. Line segmentation
 """
 def get_limits_of_projection(projection_list):
-    '''
+    ''' Calculate lower and upper limit of horizontal projection.
 
-    :param projection_list:
-    :return:
+    :param projection_list: projection
+    :return:                lower and upper bound indices
     '''
 
     result = []
@@ -219,11 +219,11 @@ def get_limits_of_projection(projection_list):
 
 
 def get_extreme_point_of_line(line, get_max=True):
-    '''
+    ''' Calculates extreme point of line.
 
-    :param line:
-    :param get_max:
-    :return:
+    :param line:    line
+    :param get_max: if True calculates max else calculates min point
+    :return:        extreme point
     '''
 
     if get_max:
@@ -234,12 +234,12 @@ def get_extreme_point_of_line(line, get_max=True):
 
 
 def create_segmented_line_list(source_image, line_list, show_result=True):
-    '''
+    ''' Creates masked, segmented line list.
 
-    :param source_image:
-    :param line_list:
-    :param show_result:
-    :return:
+    :param source_image:    source image
+    :param line_list:       list od separating lines
+    :param show_result:     if True shows results
+    :return:                segmented line list
     '''
 
     NUM_OF_ROWS, NUM_OF_COLS = source_image.shape
@@ -303,12 +303,12 @@ def create_segmented_line_list(source_image, line_list, show_result=True):
 III. Word segmentation
 """
 def determine_word_segments(source_image, segmented_lines, show_result=True):
-    '''
+    ''' Creates segmented word list & final image.
 
-    :param source_image:
-    :param segmented_lines:
-    :param show_result:
-    :return:
+    :param source_image:        source image
+    :param segmented_lines:     segmented line list
+    :param show_result:         if True shows results
+    :return:                    result image & segmented word list
     '''
 
     LINE_GAP = 5
@@ -392,11 +392,11 @@ def determine_word_segments(source_image, segmented_lines, show_result=True):
 Wrapper
 """
 def run_segmentation(source_image, show_subresults=False):
-    '''
+    ''' Runs segmentation module on given image.
 
-    :param source_image:
-    :param show_subresults:
-    :return:
+    :param source_image:        source image
+    :param show_subresults:     if True shows subresults
+    :return:                    -
     '''
 
     # SEPARATING LINE GENERATION
