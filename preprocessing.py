@@ -128,7 +128,6 @@ def determine_binary_threshold(source_image, show_result=False):
         plt.yticks([])
         plt.xlim([0, 256])
         plt.xticks(np.arange(0, 256, step=20))
-        plt.savefig('../../otsu_th.png')
         plt.show()
 
     return threshold

@@ -21,9 +21,10 @@ def main(argument_list):
     show_subresults = argument_list[2]
 
     if mode == 'segm':
-        IMAGE_PREFIX = '../../Images/preprocessed/Image00'
+        IMAGE_PREFIX = '../images/preprocessed/Image00'
 
         for i in picture_list:
+            print('\nCurrent image: {}.png'.format(IMAGE_PREFIX + convert_int_to_label_string(i)))
             current_image = cv2.imread(IMAGE_PREFIX + convert_int_to_label_string(i) + '.png', cv2.IMREAD_GRAYSCALE)
             show_image(current_image, 'Preprocessed image')
 
@@ -33,9 +34,10 @@ def main(argument_list):
             run_segmentation(current_image, show_subresults)
 
     else:
-        IMAGE_PREFIX = '../../Images/magyar/Image00'
+        IMAGE_PREFIX = '../images/original/Image00'
 
         for i in picture_list:
+            print('\nCurrent image: {}.tif'.format(IMAGE_PREFIX + convert_int_to_label_string(i)))
             current_image = cv2.imread(IMAGE_PREFIX + convert_int_to_label_string(i) + '.tif')
 
             print_picture_informations(current_image)
@@ -55,7 +57,7 @@ def parse_argumments():
     :return:    parsed argument list
     '''
 
-    valid_id_list = [int(i.split('.')[0][-3:]) for i in sorted(os.listdir('../../Images/magyar')) if i != 'Thumbs.db']
+    valid_id_list = [int(i.split('.')[0][-3:]) for i in sorted(os.listdir('../images/original')) if i != 'Thumbs.db']
 
 
     def valid_image_id(id):

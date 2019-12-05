@@ -374,9 +374,9 @@ def print_picture_informations(picture):
     :param picture: source image
     :return:        information
     '''
-    (num_of_rows, num_of_cols) = picture.shape
+    (num_of_rows, num_of_cols) = picture.shape[:2]
 
-    print('\nPICTURE INFORMATION\nShape: ({}, {})\nDatatype:     {}\n{}'.format(num_of_rows, num_of_cols, picture.dtype,
+    print('\nPICTURE INFORMATION\nShape: ({}, {})\nDatatype:     {}\n{}\n\n'.format(num_of_rows, num_of_cols, picture.dtype,
                                                                              '___________________'))
 
 def determine_background_color(source_image, show_result=True):
